@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyDarkMode(enabled) {
     document.body.classList.toggle("dark-mode", enabled);
     darkModeToggle.textContent = enabled ? "☀️ Light Mode" : "🌙 Dark Mode";
+    darkModeToggle.setAttribute("aria-label", enabled ? "Switch to light mode" : "Switch to dark mode");
   }
 
   const savedDarkMode = localStorage.getItem("darkMode") === "true";
