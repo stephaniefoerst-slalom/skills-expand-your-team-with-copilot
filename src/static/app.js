@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     community: { label: "Community", color: "#fff3e0", textColor: "#e65100" },
     technology: { label: "Technology", color: "#e8eaf6", textColor: "#3949ab" },
   };
+  const SCHOOL_NAME = "Mergington High School";
 
   // State for activities and filters
   let allActivities = {};
@@ -474,10 +475,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Build social sharing data for an activity
   function getActivityShareData(name, details) {
-    const activityUrl = `${window.location.origin}${
-      window.location.pathname
-    }?activity=${encodeURIComponent(name)}`;
-    const shareText = `Check out the ${name} activity at Mergington High School: ${details.description}`;
+    const activityUrlObject = new URL(window.location.href);
+    activityUrlObject.searchParams.set("activity", name);
+    const activityUrl = activityUrlObject.toString();
+    const descriptionPreview =
+      details.description.length > 120
+        ? `${details.description.slice(0, 117)}...`
+        : details.description;
+    const shareText = `Check out the ${name} activity at ${SCHOOL_NAME}: ${descriptionPreview}`;
     return { activityUrl, shareText };
   }
 
@@ -492,6 +497,8 @@ document.addEventListener("DOMContentLoaded", () => {
     textArea.value = text;
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
+    textArea.style.opacity = "0";
+    textArea.style.pointerEvents = "none";
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
@@ -598,10 +605,10 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="share-actions">
         <span class="share-label">Share:</span>
-        <button class="share-button native-share-button" type="button">📤</button>
-        <a class="share-button share-link x-share-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on X">𝕏</a>
-        <a class="share-button share-link facebook-share-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">f</a>
-        <button class="share-button copy-link-button" type="button">Copy Link</button>
+        <button class="share-button native-share-button" type="button" aria-label="Share ${name} activity">Share</button>
+        <a class="share-button share-link x-share-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share ${name} activity on X">X</a>
+        <a class="share-button share-link facebook-share-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share ${name} activity on Facebook">Facebook</a>
+        <button class="share-button copy-link-button" type="button" aria-label="Copy link for ${name} activity">Copy Link</button>
       </div>
     `;
 
@@ -612,7 +619,7 @@ document.addEventListener("DOMContentLoaded", () => {
       nativeShareButton.addEventListener("click", async () => {
         try {
           await navigator.share({
-            title: `${name} - Mergington High School`,
+            title: `${name} - ${SCHOOL_NAME}`,
             text: shareText,
             url: activityUrl,
           });
@@ -627,7 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const xShareLink = activityCard.querySelector(".x-share-link");
-    xShareLink.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+    xShareLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(
       shareText
     )}&url=${encodeURIComponent(activityUrl)}`;
 
