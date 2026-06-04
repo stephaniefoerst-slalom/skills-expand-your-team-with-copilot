@@ -472,6 +472,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Build social sharing data for an activity
+  function getActivityShareData(name, details) {
+    const activityUrl = `${window.location.origin}${
+      window.location.pathname
+    }?activity=${encodeURIComponent(name)}`;
+    const shareText = `Check out the ${name} activity at Mergington High School: ${details.description}`;
+    return { activityUrl, shareText };
+  }
+
+  // Copy text to clipboard with fallback
+  async function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -569,7 +596,55 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-actions">
+        <span class="share-label">Share:</span>
+        <button class="share-button native-share-button" type="button">📤</button>
+        <a class="share-button share-link x-share-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on X">𝕏</a>
+        <a class="share-button share-link facebook-share-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">f</a>
+        <button class="share-button copy-link-button" type="button">Copy Link</button>
+      </div>
     `;
+
+    const { activityUrl, shareText } = getActivityShareData(name, details);
+
+    const nativeShareButton = activityCard.querySelector(".native-share-button");
+    if (navigator.share) {
+      nativeShareButton.addEventListener("click", async () => {
+        try {
+          await navigator.share({
+            title: `${name} - Mergington High School`,
+            text: shareText,
+            url: activityUrl,
+          });
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            showMessage("Sharing failed. Please try another option.", "error");
+          }
+        }
+      });
+    } else {
+      nativeShareButton.classList.add("hidden");
+    }
+
+    const xShareLink = activityCard.querySelector(".x-share-link");
+    xShareLink.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      shareText
+    )}&url=${encodeURIComponent(activityUrl)}`;
+
+    const facebookShareLink = activityCard.querySelector(".facebook-share-link");
+    facebookShareLink.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      activityUrl
+    )}`;
+
+    const copyLinkButton = activityCard.querySelector(".copy-link-button");
+    copyLinkButton.addEventListener("click", async () => {
+      try {
+        await copyToClipboard(activityUrl);
+        showMessage("Activity link copied to clipboard.", "success");
+      } catch (error) {
+        showMessage("Unable to copy the link. Please copy it manually.", "error");
+      }
+    });
 
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
